@@ -1,4 +1,4 @@
-const VERSION = 'v4 ';
+const VERSION = 'v8';
 
 function log(message) {
   console.log(VERSION, message);
@@ -18,7 +18,20 @@ async function installServiceWorker(){
 
   const cache = await caches.open('app-cache');
   cache.put(request, response);
-  log('cached offline.html successfully.');
+}
+
+self.addEventListener('fetch', event => event.respondWith(showOfflineIfEror(event)));
+
+async function showOfflineIfEror(event) {
+  let response;
+  try {
+    response = await fetch(event.request);
+  } catch (error) {
+    console.log("Error while loading the App " + error);
+    const cache = await caches.open('app-cache');
+    return cache.match("/offline.html");
+  }
+  return fetch(event.request);
 }
 
 self.addEventListener('activate', () => {
